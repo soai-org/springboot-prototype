@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>사용자 API 테스트</title>
+</head>
+<body>
+<h1>API 테스트</h1>
+
+<h2>사용자 테스트</h2>
+<button onclick="getAllUsers()">모든 사용자 조회</button>
+<button onclick="createUser()">사용자 생성</button>
+
+<h2>환자 테스트</h2>
+<!-- 전체 조회 (FastAPI 전체 환자) -->
+<button onclick="getAllPatients()">전체 환자 조회</button>
+
+<!-- 이름 검색 (FastAPI) -->
+<input type="text" id="fastApiPatientName" placeholder="환자 이름 (FastAPI)">
+<button onclick="searchPatientFastAPI()">이름 검색 (FastAPI)</button>
+
+<!-- 이름 검색 (Spring Boot) -->
+<input type="text" id="springPatientName" placeholder="환자 이름 (Spring)">
+<button onclick="searchPatientSpring()">이름 검색 (Spring Boot)</button>
+
+<pre id="result"></pre>
+
+<script>
+    const result = document.getElementById('result');
+
+    /////////////////////
+    // 사용자 API
+    /////////////////////
+    function getAllUsers() {
+        fetch('/api/users')
+            .then(res => res.json())
+            .then(data => {
+                result.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(err => console.error(err));
+    }
+
+    function createUser() {
+        const user = {
+            id: "user123",
+            password: 1234,
+            name: "홍길동",
+            age: 25
+        };
+
+        fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+        })
+            .then(res => res.json())
+            .then(data => {
+                result.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(err => console.error(err));
+    }
+
+    /////////////////////
+    // 환자 API
+    /////////////////////
+    // 전체 환자 조회
+    function getAllPatients() {
+        fetch(`/api/users/allpatients`)
+            .then(res => res.json())
+            .then(data => {
+                result.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(err => console.error(err));
+    }
+
+    // 이름 검색 (FastAPI) - FASTAPI측 GET, POST 둘 다 사용
+    function searchPatientFastAPI() {
+        const name = document.getElementById('fastApiPatientName').value.trim();
+        if (!name) {
+            alert("FastAPI용 이름을 입력해주세요.");
+            return;
+        }
+
+        fetch(`http://localhost:8000/predict/?name=${encodeURIComponent(name)}`)
+            .then(res => res.json())
+            .then(data => {
+                result.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(err => console.error(err));
+    }
+
+    // 이름 검색 (Spring Boot)
+    function searchPatientSpring() {
+        const name = document.getElementById('springPatientName').value.trim();
+        if (!name) {
+            alert("Spring Boot용 이름을 입력해주세요.");
+            return;
+        }
+
+        fetch(`/api/users/patients?name=${encodeURIComponent(name)}`)
+            .then(res => res.json())
+            .then(data => {
+                result.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(err => console.error(err));
+    }
+</script>
+</body>
+</html>
